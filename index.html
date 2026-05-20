@@ -46,29 +46,25 @@
    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0s linear 0.3s, z-index 0.1s step-end 0.3s;
  }
 
- /* CORRECTIF TOTAL TRANSPARENCE : Face avant 100% opaque avec texture Canson Gaufré */
  .front-face { 
    position: absolute; 
    top: 0; 
    left: 0; 
    width: 100%; 
    height: 100%; 
-   background-color: #ffffff !important; /* Opaque blanc pur */
+   background-color: #ffffff !important; 
    z-index: 3; 
    display: flex; 
    flex-direction: column; 
-   /* Simulation texture papier Canson lourd pressé */
    box-shadow: inset 0 0 25px rgba(0,0,0,0.03), inset 0 0 0 3px rgba(255,255,255,1), inset 0 0 0 4px rgba(0,0,0,0.02);
  }
  
- /* Conteneur de l'illustration ajusté pour bloquer la transparence */
  .envelope-art { 
    width: 100%; 
    height: 65%; 
    overflow: hidden; 
    position: relative; 
    background-color: #ffffff; 
-   /* Découpe vectorielle au ras du dessin pour ne pas rendre le bas transparent */
    clip-path: inset(0 0 0 0); 
  }
  .envelope-art img { 
@@ -82,7 +78,7 @@
    position: absolute; 
    bottom: 4%; 
    left: 50%; 
-   width: 85%; 
+   width: 92%; /* Légèrement élargi pour accueillir harmonieusement les 3 boutons */
    transform: translateX(-50%) !important; 
    display: flex;
    flex-direction: column;
@@ -110,8 +106,9 @@
    justify-content: space-between;
    align-items: center;
    width: 100%;
-   padding: 0 4px;
+   padding: 0 2px;
    box-sizing: border-box;
+   gap: 4px; /* Espace équitable entre les 3 boutons */
  }
 
  .card { 
@@ -158,11 +155,11 @@
    white-space: nowrap;
  }
 
- .maps-btn {
+ .maps-btn, .calendar-btn, .audio-btn {
    background-color: #ffffff;
    color: #2c3e50;
    border: 1px solid #cbd5e1;
-   padding: 6px 12px;
+   padding: 6px 10px;
    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
    font-size: 11px;
    font-weight: 600;
@@ -170,56 +167,53 @@
    cursor: pointer !important;
    display: inline-flex;
    align-items: center;
-   gap: 6px;
-   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
- }
- .maps-btn:hover { background-color: #f8fafc; border-color: #c9ad6a; }
- .maps-btn svg { width: 14px; height: 14px; display: block; }
-
- .calendar-btn {
-   background-color: #ffffff;
-   color: #2c3e50;
-   border: 1px solid #cbd5e1;
-   padding: 6px 12px;
-   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-   font-size: 11px;
-   font-weight: 600;
-   border-radius: 15px;
-   cursor: pointer;
-   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-   display: inline-flex;
-   align-items: center;
    gap: 4px;
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
  }
- .calendar-btn:hover { background-color: #f8fafc; border-color: #c9ad6a; }
+ .maps-btn:hover, .calendar-btn:hover, .audio-btn:hover { background-color: #f8fafc; border-color: #c9ad6a; }
+ .maps-btn svg, .audio-btn svg { width: 14px; height: 14px; display: block; }
  .action-btn.show { opacity: 1; visibility: visible; transform: translateY(0); }
  </style>
 </head>
 <body>
+
+ <audio id="bgMusic" loop preload="auto">
+   <source src="https://files.catbox.moe/owgvs1.mp3" type="audio/mpeg">
+ </audio>
+
  <div class="envelope-wrapper" id="envelopeContainer">
  <div class="envelope" id="envelopeBody">
    <div class="envelope-back"></div>
    <div class="flap"></div>
    <div class="card">
    <div class="card-image-part">
-     <!-- LIEN PERSONNEL 1 VERROUILLÉ -->
      <img src="https://i.ibb.co/6c5bjG1Y/S-K-Invitation.png" alt="Invitation Mariage" id="invitationImg">
    </div>
    </div>
    <div class="front-face">
    <div class="envelope-art">
-     <!-- LIEN PERSONNEL 2 VERROUILLÉ -->
      <img src="https://i.ibb.co/N690yZLr/face-enveloppe.jpg" alt="Illustration Cote Gammarth">
    </div>
    <div class="recipient-box">
      <div id="recipientName" class="recipient-name-text"> </div>
      <div class="buttons-row">
+       <!-- BOUTON 1 : GOOGLE MAPS -->
        <button class="action-btn maps-btn" id="mapsButton">
          <svg viewBox="0 0 24 24" xmlns="http://w3.org">
            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335"/>
          </svg> Google Maps
        </button>
-       <button class="action-btn calendar-btn" id="calendarBtn">📅 Enregistrer la date</button>
+       
+       <!-- BOUTON 2 AJOUTÉ : CONTRÔLE AUDIO MUTE/MARCHE -->
+       <button class="action-btn audio-btn" id="audioButton">
+         <svg viewBox="0 0 24 24" xmlns="http://w3.org" id="audioIcon">
+           <!-- Icône Volume Actif par défaut -->
+           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="#2c3e50"/>
+         </svg><span id="audioText">Mute</span>
+       </button>
+
+       <!-- BOUTON 3 : CALENDRIER -->
+       <button class="action-btn calendar-btn" id="calendarBtn">📅 Calendrier</button>
      </div>
    </div>
    </div>
@@ -231,15 +225,22 @@
  const card = document.querySelector('.card');
  const img = document.getElementById('invitationImg');
  const mapsButton = document.getElementById('mapsButton');
+ const audioButton = document.getElementById('audioButton');
+ const audioIcon = document.getElementById('audioIcon');
+ const audioText = document.getElementById('audioText');
  const recipientElement = document.getElementById('recipientName');
  const calendarButton = document.getElementById('calendarBtn');
+ const audio = document.getElementById('bgMusic');
+
+ audio.volume = 0.3;
+
  try {
  const currentUrl = window.location.href;
- const urlParams = new URLSearchParams(window.location.search || currentUrl.split('?')[1]);
+ const urlParams = new URLSearchParams(window.location.search || currentUrl.split('?'));
  let guestName = urlParams.get('nom');
  if (!guestName && window.top !== window) {
  const topUrl = window.top.location.href;
- const topParams = new URLSearchParams(topUrl.split('?')[1]);
+ const topParams = new URLSearchParams(topUrl.split('?'));
  guestName = topParams.get('nom');
  }
  if (guestName) {
@@ -249,6 +250,7 @@
  } catch(e) {
  console.log("Erreur d'URL");
  }
+
  function activateEnvelope() {
  wrapper.classList.add('ready');
  }
@@ -257,59 +259,84 @@
  } else {
  img.addEventListener('load', activateEnvelope);
  }
+
  wrapper.addEventListener('click', (event) => {
- if (event.target === mapsButton || event.target === calendarButton) return;
+ if (event.target === mapsButton || event.target === calendarButton || event.target.closest('#audioButton')) return;
  if (!wrapper.classList.contains('open')) {
  wrapper.classList.add('open');
- setTimeout(() => { envelopeBody.classList.add('reveal-card'); }, 400); 
- setTimeout(() => { card.classList.add('settle'); }, 2100); 
  
- setTimeout(() => { 
-   mapsButton.classList.add('show');
-   calendarButton.classList.add('show'); 
+ audio.currentTime = 0;
+ audio.play().catch(err => console.log("Attente d'action utilisateur :", err));
+
+ setTimeout(() => { envelopeBody.classList.add('reveal-card'); }, 400);
+ setTimeout(() => { card.classList.add('settle'); }, 2100);
+ setTimeout(() => {
+ mapsButton.classList.add('show');
+ audioButton.classList.add('show');
+ calendarButton.classList.add('show');
  }, 2500);
  } else {
  mapsButton.classList.remove('show');
- calendarButton.classList.remove('show'); 
+ audioButton.classList.remove('show');
+ calendarButton.classList.remove('show');
  card.classList.remove('settle');
+ audio.pause();
+
+ // Reset de l'état graphique du bouton audio si on ferme l'enveloppe
+ audio.muted = false;
+ audioText.innerText = "Mute";
+ audioIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="#2c3e50"/>';
+
  setTimeout(() => {
-   wrapper.classList.remove('open');
-   envelopeBody.classList.remove('reveal-card');
+ wrapper.classList.remove('open');
+ envelopeBody.classList.remove('reveal-card');
  }, 200);
  }
  });
- 
+
+ // GESTION INTERACTIVE DU BOUTON AUDIO (MUTE / UNMUTE)
+ audioButton.addEventListener('click', (event) => {
+ event.stopPropagation(); // Évite la fermeture accidentelle de l'enveloppe
+ if (audio.muted) {
+   audio.muted = false;
+   audioText.innerText = "Mute";
+   audioIcon.innerHTML = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" fill="#2c3e50"/>';
+ } else {
+   audio.muted = true;
+   audioText.innerText = "Play";
+   audioIcon.innerHTML = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" fill="#2c3e50"/>';
+ }
+ });
+
  mapsButton.addEventListener('click', (event) => {
  event.stopPropagation();
- /* LIEN PERSONNEL 3 VERROUILLÉ */
  const absoluteWebUrl = "https://maps.app.goo.gl/fRxRzG4eXCShHXqs9";
  window.open(absoluteWebUrl, '_blank');
  });
 
  calendarButton.addEventListener('click', (e) => {
-   e.stopPropagation();
-   const icsContent = [
-     "BEGIN:VCALENDAR",
-     "VERSION:2.0",
-     "BEGIN:VEVENT",
-     "UID:" + Date.now() + "@mariage.com",
-     "DTSTAMP:20260517T120000Z",
-     "DTSTART:20260822T173000Z", 
-     "DTEND:20260822T200000Z",
-     "SUMMARY:Mariage de Sami & Khadija 💍",
-     "DESCRIPTION:Célébration du mariage à l'hôtel Golden Carthage Gammarth.",
-     "LOCATION:Golden Carthage Gammarth, Tunisie",
-     "END:VEVENT",
-     "END:VCALENDAR"
-   ].join("\r\n");
-
-   const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-   const link = document.createElement("a");
-   link.href = window.URL.createObjectURL(blob);
-   link.setAttribute("download", "Mariage_Sami_Khadija.ics");
-   document.body.appendChild(link);
-   link.click();
-   document.body.removeChild(link);
+ e.stopPropagation();
+ const icsContent = [
+ "BEGIN:VCALENDAR",
+ "VERSION:2.0",
+ "BEGIN:VEVENT",
+ "UID:" + Date.now() + "@mariage.com",
+ "DTSTAMP:20260517T120000Z",
+ "DTSTART:20260822T173000Z",
+ "DTEND:20260822T200000Z",
+ "SUMMARY:Mariage de Sami & Khadija 💍",
+ "DESCRIPTION:Célébration du mariage à l'hôtel Golden Carthage Gammarth.",
+ "LOCATION:Golden Carthage Gammarth, Tunisie",
+ "END:VEVENT",
+ "END:VCALENDAR"
+ ].join("\r\n");
+ const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+ const link = document.createElement("a");
+ link.href = window.URL.createObjectURL(blob);
+ link.setAttribute("download", "Mariage_Sami_Khadija.ics");
+ document.body.appendChild(link);
+ link.click();
+ document.body.removeChild(link);
  });
  </script>
 </body>
