@@ -16,25 +16,25 @@
             overflow: hidden;
             box-sizing: border-box;
         }
-        .envelope-wrapper {
-            position: relative;
-            cursor: pointer;
-            perspective: 2000px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 95vw;
-            max-width: 420px;
-            aspect-ratio: 1 / 1;
-            transform: translateY(114px) !important;
-            opacity: 0.3;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
-        }
-        .envelope-wrapper.ready {
-            opacity: 1;
-            pointer-events: auto;
-        }
+   .envelope-wrapper {
+    position: relative;
+    cursor: pointer;
+    perspective: 2000px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 95vw;
+    max-width: 420px;
+    aspect-ratio: 1 / 1;
+    transform: translateY(114px) !important;
+    opacity: 0; /* Commencer invisible et non cliquable proprement */
+    transition: opacity 0.5s ease;
+}
+
+.envelope-wrapper.ready {
+    opacity: 1; /* Devient visible et actif sur iOS */
+}
+
        .envelope {
     position: relative;
     width: 100%;
@@ -184,7 +184,41 @@
         font-size: 25px !important;
     }
 }
+.invitation-title-text {
+    font-family: "Amiri", "Traditional Arabic", "Urdu Typesetting", serif !important;
+    font-size: 4.8vw !important;
+    font-weight: bold !important;
+    color: #10069F !important;
+    direction: rtl;
+    text-align: center !important;
+    width: 100%;
+    /* Réduit à 55px pour faire redescendre le titre d'un demi-centimètre */
+    margin-bottom: 55px !important; 
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 8px;
+    animation: pulseGlow 2s infinite ease-in-out;
+}
 
+.invitation-title-text span {
+    font-size: 5vw !important;
+    display: inline-block;
+}
+
+@keyframes pulseGlow {
+    0% { opacity: 0.6; transform: scale(0.98); }
+    50% { opacity: 1; transform: scale(1.02); }
+    100% { opacity: 0.6; transform: scale(0.98); }
+}
+
+@media (min-width: 420px) {
+    .invitation-title-text { 
+        font-size: 19px !important; 
+        margin-bottom: 55px !important; /* Conserve l'ajustement sur grand écran */
+    }
+    .invitation-title-text span { font-size: 20px !important; }
+}
 
         .buttons-row {
             display: flex;
@@ -306,8 +340,13 @@
                     <img src="https://i.ibb.co/Z1GHFQjQ/enveloppe-1.jpg" alt="Illustration Cote Gammarth">
                 </div>
                 <div class="recipient-box">
-                    <div id="recipientName" class="recipient-name-text"> </div>
-                    <div class="buttons-row">
+    <!-- NOUVEAU : Titre d'invitation en arabe rassurant -->
+    <d<!-- Titre en arabe avec icône de main interactive -->
+<div class="invitation-title-text"><span>👆</span> بطاقة دعوة ، أنقر لفتحها</div>
+    <div id="recipientName" class="recipient-name-text"> </div>
+    <div class="buttons-row">
+        <!-- Vos boutons Google Maps, Audio, Calendrier... -->
+
                         <button class="action-btn maps-btn" id="mapsButton">
                             <svg viewBox="0 0 24 24">
                                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335"/>
@@ -412,30 +451,52 @@
             window.open("https://maps.app.goo.gl/fRxRzG4eXCShHXqs9", '_blank');
         });
 
-        calendarButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const icsContent = [
-                "BEGIN:VCALENDAR",
-                "VERSION:2.0",
-                "BEGIN:VEVENT",
-                "UID:" + Date.now() + "@mariage.com",
-                "DTSTAMP:20260517T120000Z",
-                "DTSTART:20260822T173000Z",
-                "DTEND:20260822T200000Z",
-                "SUMMARY:Mariage de Sami & Khadija 💍",
-                "DESCRIPTION:Célébration du mariage à l'hôtel Golden Carthage Gammarth.",
-                "LOCATION:Golden Carthage Gammarth, Tunisie",
-                "END:VEVENT",
-                "END:VCALENDAR"
-            ].join("\r\n");
-            const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-            const link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.setAttribute("download", "Mariage_Sami_Khadija.ics");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
+    calendarButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "BEGIN:VEVENT",
+        "UID:" + Date.now() + "@mariage.com",
+        "DTSTAMP:20260517T120000Z",
+        "DTSTART:20260822T173000Z",
+        "DTEND:20260822T200000Z",
+        "SUMMARY:Mariage de Sami & Khadija 💍",
+        "DESCRIPTION:Célébration du mariage à l'hôtel Golden Carthage Gammarth.",
+        "LOCATION:Golden Carthage Gammarth, Tunisie",
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ].join("\r\n");
+
+    // Détection stricte d'iOS (iPhone / iPad / Safari mobile)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+    if (isIOS) {
+        // Méthode universelle validée pour forcer l'ouverture sur le calendrier de l'iPhone
+        const uri = "data:text/calendar;charset=utf8," + encodeURIComponent(icsContent);
+        window.open(uri, '_blank');
+    } else {
+        // Méthode classique de téléchargement pour Android et PC
+        const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.setAttribute("download", "Mariage_Sami_Khadija.ics");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+});
+
+// Arrête immédiatement la musique si l'utilisateur quitte l'onglet ou l'application mobile
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        au.pause();
+    } else if (w.classList.contains('open') && !au.muted) {
+        // Optionnel : relance la musique si l'utilisateur revient sur l'onglet et que l'enveloppe est ouverte
+        au.play().catch(e => console.log(e));
+    }
+});
+
     </script>
 </body>
 </html>
